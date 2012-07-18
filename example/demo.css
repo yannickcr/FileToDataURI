@@ -1,0 +1,10 @@
+* { margin:0; padding:0; border:0; }
+body { background:#EEE; font:normal 10px "Trebuchet MS", Helvetica, Jamrul, sans-serif; padding:10px 20px 20px; }
+#container { background:#FFF; border:1px solid #CCC; padding:20px; }
+.block { margin-bottom:40px; }
+h1 { font-size:2.5em; padding:5px; }
+h2 { font-size:1.6em; }
+p { font-size:1.2em; margin:1em 0; }
+button, textarea { border:1px solid #CCC; padding:2px 5px; }
+button.hover { background:yellow; }
+button.active { background:green; }

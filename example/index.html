@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+	<meta charset="utf-8" />
+	<title>FileToDataURI example</title>
+	<link rel="stylesheet" href="demo.css" media="screen" />
+	<style>
+		/* Use .button as a container for the real button and the invisible flash object */
+		.button {
+			display: inline-block;
+			position: relative;
+		}
+
+		/* Hide the file input */
+		#file-input {
+			position: absolute;
+			left: -9999em;
+		}
+
+		/* Style the flash object to cover the real button (the background prevents the cursor to go 'throught' the transparent object) */
+		#file-object {
+			background: rgba(0,0,0,0);
+			position: absolute;
+			left: 0;
+			top: 0;
+			width: 100%;
+			height: 100%;
+		}
+	</style>
+</head>
+<body>
+<body>
+	<h1>FileToDataURI example</h1>
+	<div id="container">
+<!-- Example 1 -->
+		<div class="block">
+			<div>
+				<div class="button">
+					<button id="file-button">Select an image</button>
+					<!--[if IE]>
+					<object id="file-object" width="500" height="500" classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" codebase="http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0">
+						<param name="movie" value="../dist/FileToDataURI.swf" />
+						<param name="allowScriptAccess" value="always" />
+						<param name="wmode" value="transparent" />
+					</object>
+					<![endif]-->
+					<input id="file-input" type="file" accept="image/*" />
+				</div>
+			</div>
+			<img id="file-preview" src="" />
+			<script>
+				var
+					// Retrieve the file from Flash
+					Flash = {
+						getFileData: function(base64) {
+							displayFile(base64);
+						}
+					},
+					// Display the image in the page
+					displayFile = function(src) {
+						document.getElementById('file-preview').src = src;
+					}
+				;
+
+				// Event on the button
+				document.getElementById('file-button').addEventListener('click', function(){
+					document.getElementById('file-input').click();
+				}, false);
+
+				// Event on the file input (using FileReader to retrieve the file under modern browsers)
+				document.getElementById('file-input').addEventListener('change', function (e) {
+					var
+						files = e.target.files,
+						file
+					;
+					if (!files || files.length == 0)  return;
+					file = files[0];
+
+					var fileReader = new FileReader();
+					fileReader.onload = function (e) {
+						displayFile(e.target.result);
+					};
+					fileReader.readAsDataURL(file);
+				});
+			</script>
+		</div>
+	</div>
+</body>
+</html>

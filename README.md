@@ -70,6 +70,15 @@ JavaScript:
 
 You can see a full example in the ["example" directory](https://github.com/Country/FileToDataURI.as/blob/master/example).
 
+Compilation
+-----------
+
+Install the [Flex SDK](https://www.adobe.com/devnet/flex/flex-sdk-download.html) and run the following command :
+
+	$ ./bin/mxmlc FileToDataURI.as
+
+And that's it !
+
 TODO
 ------
 

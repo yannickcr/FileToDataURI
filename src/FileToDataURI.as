@@ -20,13 +20,15 @@ package {
 	public class FileToDataURI extends Sprite {
 
 		// Configuration
-		private var allowedType:String = 'image';
-		private var allowedExts:Array = new Array('jpg', 'jpeg', 'gif', 'png');
-		private var fileDescription:String = 'Images';
-		private var javascriptReceiver:String = 'Flash.getFileData';
+		private var instanceId:int = stage.loaderInfo.parameters['instanceId'] || 0;
+		private var allowedType:String = stage.loaderInfo.parameters['allowedType'] || 'image';
+		private var allowedExts:Array = stage.loaderInfo.parameters['allowedExts'].split(',') || new Array('jpg', 'jpeg', 'gif', 'png');
+		private var fileDescription:String = stage.loaderInfo.parameters['fileDescription'] || 'Images';
+		private var multiple:Boolean = stage.loaderInfo.parameters['multiple'] || false;
 		// ---
 
 		private var ext:String;
+		private var javascriptReceiver:String = 'jQuery.fn.FileToDataURI.javascriptReceiver';
 		private var fileRef:FileReference = new FileReference();
 		private var TypesList:FileFilter = new FileFilter(fileDescription + '(*.' + allowedExts.join(', *.') + ')', '*.' + allowedExts.join('; *.'));
 		private var Types:Array = new Array(TypesList);
@@ -43,7 +45,7 @@ package {
 		private function sendFileData(base64:String):void {
 			ext = fileRef.name.replace(extPattern, '$2').toLowerCase();
 
-			if (allowedExts.indexOf(ext) !== -1) ExternalInterface.call(javascriptReceiver, 'data:' + allowedType + '/' + ext + ';base64,' + base64);
+			if (allowedExts.indexOf(ext) !== -1) ExternalInterface.call(javascriptReceiver, instanceId, 'data:' + allowedType + '/' + ext + ';base64,' + base64);
 			return;
 		}
 		

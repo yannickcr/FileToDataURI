@@ -1,9 +1,9 @@
 /* 
 * Copyright (C) 2012 Yannick Croissant
 * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php 
-* FileToDataURI.as : An ActionScript application that allow you to retrieve the content (base64 encoded) of a local file without the File API.
+* FileToDataURI.as : FileToDataURI is a jQuery plugin that allow you to retrieve the content (base64 encoded) of a local file using the HTML5 File API or using a Flash application if the File API is not available.
 * Authors :
-* - Yannick Croissant, https://twitter.com/yannickc
+* - Yannick Croissant, https://github.com/Country
 * - Jean-Philippe Auclair for the Base64 library, http://jpauclair.net
 */
 package {
@@ -11,7 +11,6 @@ package {
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.display.Sprite;
-	import flash.ui.Mouse;
 	import flash.net.FileReference;
 	import flash.net.FileFilter;
 	import flash.utils.ByteArray;
@@ -19,15 +18,16 @@ package {
 
 	public class FileToDataURI extends Sprite {
 
-		// Configuration
-		private var instanceId:int = stage.loaderInfo.parameters['instanceId'] || 0;
-		private var allowedType:String = stage.loaderInfo.parameters['allowedType'] || 'image';
-		private var allowedExts:Array = stage.loaderInfo.parameters['allowedExts'].split(',') || new Array('jpg', 'jpeg', 'gif', 'png');
-		private var fileDescription:String = stage.loaderInfo.parameters['fileDescription'] || 'Images';
-		private var multiple:Boolean = stage.loaderInfo.parameters['multiple'] || false;
-		// ---
+		// Flash vars
+		private var flashvars:Object = stage.loaderInfo.parameters;
+		private var id:int = flashvars['id'] || 0;
+		private var allowedType:String = flashvars['allowedType'] || 'image';
+		private var allowedExts:Array = flashvars['allowedExts'] ? flashvars['allowedExts'].split(',') : new Array('jpg', 'jpeg', 'gif', 'png');
+		private var fileDescription:String = flashvars['fileDescription'] || 'Images';
+		private var multiple:Boolean = flashvars['multiple'] || false; // Unused
 
 		private var ext:String;
+		private var button:Sprite;
 		private var javascriptReceiver:String = 'jQuery.fn.FileToDataURI.javascriptReceiver';
 		private var fileRef:FileReference = new FileReference();
 		private var TypesList:FileFilter = new FileFilter(fileDescription + '(*.' + allowedExts.join(', *.') + ')', '*.' + allowedExts.join('; *.'));
@@ -36,8 +36,15 @@ package {
 		private static const _encodeChars:Vector.<int> = InitEncoreChar();
 		
 		public function FileToDataURI() {
-			Mouse.cursor = "button";
-			stage.addEventListener(MouseEvent.CLICK, browseFiles);
+			button = new Sprite();
+			button.buttonMode = true;
+			button.useHandCursor = true;
+			button.graphics.beginFill(0xCCFF00);
+			button.graphics.drawRect(0, 0, 500, 500);
+			button.alpha = 0.0;
+			addChild(button);
+
+			button.addEventListener(MouseEvent.CLICK, browseFiles);
 			fileRef.addEventListener(Event.SELECT, onFileSelected);
 			fileRef.addEventListener(Event.COMPLETE, onComplete);
 		}
@@ -45,7 +52,7 @@ package {
 		private function sendFileData(base64:String):void {
 			ext = fileRef.name.replace(extPattern, '$2').toLowerCase();
 
-			if (allowedExts.indexOf(ext) !== -1) ExternalInterface.call(javascriptReceiver, instanceId, 'data:' + allowedType + '/' + ext + ';base64,' + base64);
+			if (allowedExts.indexOf(ext) !== -1) ExternalInterface.call(javascriptReceiver, id, 'data:' + allowedType + '/' + ext + ';base64,' + base64);
 			return;
 		}
 		

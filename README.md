@@ -43,7 +43,8 @@ And that's it !
 TODO
 ------
 
-* Implement multiple file selection
+* Multiple file selection
+* Better mime-type generation
 
 Licenses
 ----------

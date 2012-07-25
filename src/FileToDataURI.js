@@ -125,18 +125,21 @@
 			);
 
 			// Construct the flash object
-			var html;
+			var
+				html,
+				flashvars = 'id=' + this.data('FileToDataURI.id') + '&allowedType=' + this.data('FileToDataURI').options.allowedType + '&allowedExts=' + this.data('FileToDataURI').options.allowedExts.join(',') + '&fileDescription=' + this.data('FileToDataURI').options.fileDescription + '&multiple=' + this.data('FileToDataURI').options.multiple;
+			;
 			// Internet Explorer
 			if ($.browser.msie) {
 				html = '<object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" codebase="//download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=9,0,0,0" width="500" height="500" id="FileToDataURI' + this.data('FileToDataURI.id') + '" align="middle">' +
 							'<param name="allowScriptAccess" value="always" />' +
 							'<param name="movie" value="' + this.data('FileToDataURI').options.moviePath + '" />' +
-							'<param name="flashvars" value="id=' + this.data('FileToDataURI.id') + '"/>' +
+							'<param name="flashvars" value="' + flashvars + '"/>' +
 							'<param name="wmode" value="transparent"/>' +
 						'</object>';
 			// Others
 			} else {
-				html = '<embed id="FileToDataURI' + this.data('FileToDataURI.id') + '" src="' + this.data('FileToDataURI').options.moviePath + '" width="500" height="500" name="FileToDataURI' + this.data('FileToDataURI.id') + '" align="middle" allowScriptAccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" flashvars="id=' + this.data('FileToDataURI.id') + '" wmode="transparent" />';
+				html = '<embed id="FileToDataURI' + this.data('FileToDataURI.id') + '" src="' + this.data('FileToDataURI').options.moviePath + '" width="500" height="500" name="FileToDataURI' + this.data('FileToDataURI.id') + '" align="middle" allowScriptAccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" flashvars="' + flashvars + '" wmode="transparent" />';
 			}
 
 			// Insert the flash object in the container

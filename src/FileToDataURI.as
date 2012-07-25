@@ -11,6 +11,7 @@ package {
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.display.Sprite;
+	import flash.display.StageScaleMode;
 	import flash.net.FileReference;
 	import flash.net.FileFilter;
 	import flash.utils.ByteArray;
@@ -36,6 +37,8 @@ package {
 		private static const _encodeChars:Vector.<int> = InitEncoreChar();
 		
 		public function FileToDataURI() {
+			stage.scaleMode = StageScaleMode.EXACT_FIT;
+			
 			button = new Sprite();
 			button.buttonMode = true;
 			button.useHandCursor = true;

@@ -183,7 +183,7 @@
 	 */
 	$.fn.FileToDataURI.javascriptReceiver = function(id, filesData) {
 		// Find the instance by id and call the callback function
-		$('[data-filetodatauri-id=' + id + ']').data('FileToDataURI').options.onSelect([filesData]);
+		$('[data-filetodatauri-id="' + id + '"]').data('FileToDataURI').options.onSelect([filesData]);
 	};
 
 	$.fn.FileToDataURI.defaults = {

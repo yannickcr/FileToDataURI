@@ -39,6 +39,7 @@
 
 		hide: function() {
 			this.FileToDataURI('_flashHide');
+			return this;
 		},
 
 		/*

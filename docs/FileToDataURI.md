@@ -45,6 +45,19 @@ FileToDataURI Method: constructor {#FileToDataURI:constructor}
 		}
 	});
 
+FileToDataURI Method: hide {#FileToDataURI:hide}
+-------------------------------------------------------------------
+
+Force to hide the Flash application by moving it off-screen.
+
+### Syntax:
+
+	$('#file-button').FileToDataURI('hide'));
+
+### Returns:
+
+* (object) jQuery collection.
+
 ### Notes:
 
  * This plugin needs [Adobe Flash](http://get.adobe.com/fr/flashplayer/) to works under IE7/8/9 and other browsers who do not support the File API.

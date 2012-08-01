@@ -1,4 +1,4 @@
-/* 
+/*
 * Copyright (C) 2012 Yannick Croissant
 * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php 
 * FileToDataURI.as : FileToDataURI is a jQuery plugin that allow you to retrieve the content (base64 encoded) of a local file using the HTML5 File API or using a Flash application if the File API is not available.
@@ -14,7 +14,7 @@
 		/*
 		 * Constructor
 		 */
-		init : function( options ) {
+		init: function( options ) {
 
 			this.FileToDataURI.options = $.extend({}, this.FileToDataURI.defaults, options);
 
@@ -35,6 +35,10 @@
 			});
 
 			return this;
+		},
+
+		hide: function() {
+			this.FileToDataURI('_flashHide');
 		},
 
 		/*
@@ -84,7 +88,7 @@
 				filesL = files.length,         // Store the length
 				fileReader = new FileReader(), // Create a new FileReader instance
 				i = 0,                         // Init i
-				filesData = [];                // Init an empty array to store the results
+				filesData = []                 // Init an empty array to store the results
 			;
 
 			// onLoad event
@@ -127,7 +131,7 @@
 			// Construct the flash object
 			var
 				html,
-				flashvars = 'id=' + this.data('FileToDataURI.id') + '&allowedType=' + this.data('FileToDataURI').options.allowedType + '&allowedExts=' + this.data('FileToDataURI').options.allowedExts.join(',') + '&fileDescription=' + this.data('FileToDataURI').options.fileDescription + '&multiple=' + this.data('FileToDataURI').options.multiple;
+				flashvars = 'id=' + this.data('FileToDataURI.id') + '&allowedType=' + this.data('FileToDataURI').options.allowedType + '&allowedExts=' + this.data('FileToDataURI').options.allowedExts.join(',') + '&fileDescription=' + this.data('FileToDataURI').options.fileDescription + '&multiple=' + this.data('FileToDataURI').options.multiple
 			;
 			// Internet Explorer
 			if ($.browser.msie) {
@@ -154,7 +158,7 @@
 				var
 					el = $(this),
 					coords = el.offset(),
-					zIndex = el.css('z-index')
+					zIndex = 2147483647 // Max z-index allowed by most browsers
 				;
 				
 				el.data('FileToDataURI.flash').css({
@@ -164,6 +168,12 @@
 					height: el.outerHeight() + 'px',
 					'z-index': zIndex
 				});
+			});
+		},
+
+		_flashHide: function() {
+			this.data('FileToDataURI.flash').css({
+				left: '-9999px'
 			});
 		}
 	};
@@ -182,8 +192,12 @@
 	 * Flash callback
 	 */
 	$.fn.FileToDataURI.javascriptReceiver = function(id, filesData) {
-		// Find the instance by id and call the callback function
-		$('[data-filetodatauri-id="' + id + '"]').data('FileToDataURI').options.onSelect([filesData]);
+		// Find the instance by id
+		var el = $('[data-filetodatauri-id="' + id + '"]');
+		// Hide the flash
+		el.FileToDataURI('hide');
+		// Call the callback function
+		el.data('FileToDataURI').options.onSelect([filesData]);
 	};
 
 	$.fn.FileToDataURI.defaults = {

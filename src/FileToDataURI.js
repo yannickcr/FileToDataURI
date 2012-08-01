@@ -38,7 +38,7 @@
 		},
 
 		hide: function() {
-			this.FileToDataURI('_flashHide');
+			if (this.data('FileToDataURI.context') == 'flash') this.FileToDataURI('_flashHide');
 			return this;
 		},
 
@@ -46,20 +46,25 @@
 		 * Initialize
 		 */
 		_init: function() {
-			var id = Math.round(Math.random()*1e9);
+			var
+				id = Math.round(Math.random()*1e9),
+				context = typeof FileReader == 'function' ? 'native' : 'flash' // Detect if FileReader is supported or not
+			;
 			this.data('FileToDataURI.id', id);
 			this.attr('data-filetodatauri-id', id);
+			this.data('FileToDataURI.context', context);
 
-			// Detect if FileReader is supported
-			if (typeof FileReader == 'function') this.FileToDataURI('_nativeInit');
-			// If not, use the flash fallback
-			else this.FileToDataURI('_flashInit');
+			// Call the context-related constructor
+			this.FileToDataURI('_' + context + 'Init');
 		},
 
 		/*
 		 * Use the native browser technologies to select the file(s)
 		 */
 		_nativeInit: function() {
+			this.data( 'FileToDataURI.context', 'native' );
+			this.data('FileToDataURI.input', input);
+
 			// Create the file input
 			var input = $('<input>').attr({
 				type:'file',

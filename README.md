@@ -8,7 +8,7 @@ It can be very useful under some not-so-modern browsers like IE7/8/9.
 How to use
 ----------
 
-You can find the full documentation in the ["docs" directory](https://github.com/Country/FileToDataURI.as/blob/master/docs).
+You can find the full documentation in the ["docs" directory](https://github.com/yannickcr/FileToDataURI.as/blob/master/docs).
 
 ### Example
 
@@ -29,7 +29,7 @@ JavaScript:
 		}
 	});
 
-You can see a working example in the ["example" directory](https://github.com/Country/FileToDataURI.as/blob/master/example).
+You can see a working example in the ["example" directory](https://github.com/yannickcr/FileToDataURI.as/blob/master/example).
 
 Flash application compilation
 -----------

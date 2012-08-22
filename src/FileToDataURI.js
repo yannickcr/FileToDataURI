@@ -66,11 +66,20 @@
 			this.data('FileToDataURI.input', input);
 
 			// Create the file input
-			var input = $('<input>').attr({
-				type:'file',
-				accept: this.data('FileToDataURI').options.allowedType + '/*',
-				multiple: this.data('FileToDataURI').options.multiple
-			});
+			var input =
+				$('<input>')
+					.attr({
+						type:'file',
+						accept: this.data('FileToDataURI').options.allowedType + '/*',
+						multiple: this.data('FileToDataURI').options.multiple,
+						style: 'position:absolute;left:-9999px'
+					})
+					.css({
+						position: 'absolute',
+						left: '-9999px'
+					});
+			// Inject the input in the body (the click event will not work under Opera if the element is not in the DOM)
+			$(document.body).append(input);
 			// Store the input reference
 			this.data('FileToDataURI.input', input);
 

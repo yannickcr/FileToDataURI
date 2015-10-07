@@ -14,6 +14,7 @@ package {
 	import flash.display.StageScaleMode;
 	import flash.net.FileReference;
 	import flash.net.FileFilter;
+	import flash.net.FileReferenceList;
 	import flash.utils.ByteArray;
 	import flash.external.ExternalInterface;
 
@@ -25,20 +26,31 @@ package {
 		private var allowedType:String = flashvars['allowedType'] || 'image';
 		private var allowedExts:Array = flashvars['allowedExts'] ? flashvars['allowedExts'].split(',') : new Array('jpg', 'jpeg', 'gif', 'png');
 		private var fileDescription:String = flashvars['fileDescription'] || 'Images';
-		private var multiple:Boolean = flashvars['multiple'] || false; // Unused
+		private var multiple:Boolean = false; // Default to multiple
 
 		private var ext:String;
 		private var button:Sprite;
 		private var javascriptReceiver:String = 'jQuery.fn.FileToDataURI.javascriptReceiver';
+		private var logToJS:String = 'jQuery.fn.FileToDataURI.log';
 		private var fileRef:FileReference = new FileReference();
+		private var fileReferenceList:FileReferenceList = new FileReferenceList();
 		private var TypesList:FileFilter = new FileFilter(fileDescription + '(*.' + allowedExts.join(', *.') + ')', '*.' + allowedExts.join('; *.'));
 		private var Types:Array = new Array(TypesList);
 		private	var extPattern:RegExp = /(.*)\.([a-z0-9]*)$/gi;
 		private static const _encodeChars:Vector.<int> = InitEncoreChar();
-		
+
+		private var numberOfSelectedFiles:Number;
+		private var fileArrayToReturnToClient:Array;
+
+
 		public function FileToDataURI() {
+			// Bring in the flashVars
+			if ( flashvars['multiple'] ) {
+				multiple = isTrue( flashvars['multiple']);
+			}
+
 			stage.scaleMode = StageScaleMode.EXACT_FIT;
-			
+
 			button = new Sprite();
 			button.buttonMode = true;
 			button.useHandCursor = true;
@@ -48,44 +60,115 @@ package {
 			addChild(button);
 
 			button.addEventListener(MouseEvent.CLICK, browseFiles);
+
 			fileRef.addEventListener(Event.SELECT, onFileSelected);
-			fileRef.addEventListener(Event.COMPLETE, onComplete);
+			fileRef.addEventListener(Event.COMPLETE, onCompletedSingleFile);
+
+			fileReferenceList.addEventListener(Event.SELECT, onFileListSelected);
 		}
 
-		private function sendFileData(base64:String):void {
-			ext = fileRef.name.replace(extPattern, '$2').toLowerCase();
+		// Helper method to convert flashvars into bools
+		private function isTrue(val:String):Boolean {
+			if ( val.toLowerCase() === 'true' ) {
+				return true;
+			}
+			return false;
+		}
 
-			if (allowedExts.indexOf(ext) !== -1) ExternalInterface.call(javascriptReceiver, id, 'data:' + allowedType + '/' + ext + ';base64,' + base64);
+		private function sendFileListData(fileListData:Array):void {
+			if ( ExternalInterface.available ) {
+				ExternalInterface.call(javascriptReceiver, id, fileListData);
+			}
 			return;
 		}
-		
-		private function browseFiles(evt:MouseEvent):void {
-			fileRef.browse(Types);
+
+		// Helper method to output to the console should you need it during development
+		private function log(message:String):void {
+			if ( ExternalInterface.available ) {
+				//ExternalInterface.call(logToJS, message);
+			}
 		}
-		
+
+		private function browseFiles(evt:MouseEvent):void {
+			if ( multiple ) {
+				fileReferenceList.browse(Types);
+			} else {
+				fileRef.browse(Types);
+			}
+		}
+
 		private function onFileSelected(event:Event):void {
 			fileRef.load();
 		}
 
-		public function onComplete(evt:Event):void {
-			sendFileData(encode(fileRef.data));
+		private function onFileListSelected(event:Event):void {
+			var file:FileReference;
+			var length:Number = fileReferenceList.fileList.length;
+
+			numberOfSelectedFiles = length;
+			fileArrayToReturnToClient = new Array();
+
+			for(var i:Number = 0; i < length; i++) {
+				file = fileReferenceList.fileList.pop();
+				file.addEventListener(Event.COMPLETE, onCompletedListFile);
+				file.load();
+			}
 		}
 
-		/* 
-		* Copyright (C) 2012 Jean-Philippe Auclair 
-		* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php 
-		* Base64 library for ActionScript 3.0. 
-		* By: Jean-Philippe Auclair : http://jpauclair.net 
-		* Based on article: http://jpauclair.net/2010/01/09/base64-optimized-as3-lib/ 
-		* Benchmark: 
-		* This version: encode: 260ms decode: 255ms 
-		* Blog version: encode: 322ms decode: 694ms 
-		* as3Crypto encode: 6728ms decode: 4098ms 
-		* 
-		* Encode: com.sociodox.utils.Base64 is 25.8x faster than as3Crypto Base64 
-		* Decode: com.sociodox.utils.Base64 is 16x faster than as3Crypto Base64 
-		* 
-		* Optimize & Profile any Flash content with TheMiner ( http://www.sociodox.com/theminer ) 
+		private function onCompletedListFile( event : Event) : void {
+			var obj:Object = new Object();
+			var ext:String = event.currentTarget.name.replace(extPattern, '$2').toLowerCase();
+
+			if (allowedExts.indexOf(ext) !== -1) {
+				// Create an image object and add it to the array
+				obj.name = event.currentTarget.name;
+				obj.data = encodeBase64(event.currentTarget.data, ext);
+				fileArrayToReturnToClient.push(obj)
+			} else {
+				// File not allowed - so drop the selectedFile count
+				numberOfSelectedFiles = numberOfSelectedFiles - 1;
+			}
+
+			if ( fileArrayToReturnToClient.length === numberOfSelectedFiles ) {
+				// Return the array back
+				sendFileListData( fileArrayToReturnToClient );
+			}
+		}
+
+		public function onCompletedSingleFile(evt:Event):void {
+			var ext:String = fileRef.name.replace(extPattern, '$2').toLowerCase();
+
+			if (allowedExts.indexOf(ext) !== -1) {
+				// return the array back
+				sendFileListData(
+					[{
+						data : encodeBase64(fileRef.data, ext),
+						name : fileRef.name
+					}]
+				);
+			}
+		}
+
+
+		private function encodeBase64(data:ByteArray, ext:String):String {
+			return 'data:' + allowedType + '/' + ext + ';base64,' + encode(data);
+		}
+
+		/*
+		* Copyright (C) 2012 Jean-Philippe Auclair
+		* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+		* Base64 library for ActionScript 3.0.
+		* By: Jean-Philippe Auclair : http://jpauclair.net
+		* Based on article: http://jpauclair.net/2010/01/09/base64-optimized-as3-lib/
+		* Benchmark:
+		* This version: encode: 260ms decode: 255ms
+		* Blog version: encode: 322ms decode: 694ms
+		* as3Crypto encode: 6728ms decode: 4098ms
+		*
+		* Encode: com.sociodox.utils.Base64 is 25.8x faster than as3Crypto Base64
+		* Decode: com.sociodox.utils.Base64 is 16x faster than as3Crypto Base64
+		*
+		* Optimize & Profile any Flash content with TheMiner ( http://www.sociodox.com/theminer )
 		*/
 		public static function encode(data:ByteArray):String {
 			var out:ByteArray = new ByteArray();

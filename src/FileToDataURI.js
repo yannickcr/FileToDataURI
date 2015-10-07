@@ -103,25 +103,39 @@
 				filesL = files.length,         // Store the length
 				fileReader = new FileReader(), // Create a new FileReader instance
 				i = 0,                         // Init i
-				filesData = []                 // Init an empty array to store the results
+				filesData = [],                // Init an empty array to store the results,
+				currentFileName = ''		   // Keep track of the file name
 			;
 
 			// onLoad event
 			fileReader.onload = function (e) {
 				// Push the file content in the result array
-				filesData.push(e.target.result);
+				filesData.push({
+					name : currentFileName,
+					data : e.target.result
+				});
 
-				// Call the callback function if we reach the end of the list
-				if (filesData.length == filesL) this.data('FileToDataURI').options.onSelect(filesData);
-				// Else read the next file
-				else fileReader.readAsDataURL(files[++i]);
+
+				if (filesData.length == filesL) {
+					// Call the callback function if we reach the end of the list
+					this.data('FileToDataURI').options.onSelect(filesData);
+				} else {
+					// Else read the next file
+					processFile( files[ ++i ] );
+				}
 			}.bind(this);
 
 			// Exit if there is no selected files
 			if (filesL === 0) return;
 
 			// Read the first selected file
-			fileReader.readAsDataURL(files[0]);
+			processFile( files[0] );
+
+			function processFile( file ) {
+				// Hang on to the current file as global
+				currentFileName = file.name;
+				fileReader.readAsDataURL( file );
+			}
 		},
 
 		/*
@@ -211,8 +225,16 @@
 		var el = $('[data-filetodatauri-id="' + id + '"]');
 		// Hide the flash
 		el.FileToDataURI('hide');
-		// Call the callback function
-		el.data('FileToDataURI').options.onSelect([filesData]);
+		// Call the callback function by wrapping it in an array - could we do this in Flash?
+		// el.data('FileToDataURI').options.onSelect([filesData]);
+		el.data('FileToDataURI').options.onSelect(filesData);
+	};
+
+	/*
+		Flash helper debug during development
+	 */
+	$.fn.FileToDataURI.log = function(message) {
+		console.log('From FileToDataURI.swf: ', message);
 	};
 
 	$.fn.FileToDataURI.defaults = {

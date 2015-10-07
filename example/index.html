@@ -50,26 +50,30 @@
 			<ul id="results"></ul>
 			<script>
 				// Initialize FileToDataURI
-				$('#file-button').FileToDataURI({
-					moviePath: '../dist/FileToDataURI.swf',
-					// Display the images in the page
-					onSelect: function(files) {
-						var
-							li = $('<li>'),
-							img = $('<img>'),
-							textarea = $('<textarea>'),
-							file,
-							i =0,
-							filesL = files.length,
-							results = $('#results')
-						;
-						for (; i < filesL; i++) {
-							file = li.clone().append(img.clone().attr('src', files[i]));
-							file = file.append(textarea.clone().text(files[i]));
-							file.prependTo(results);
+				$(document).ready(function() {
+					$('#file-button').FileToDataURI({
+						moviePath: '../dist/FileToDataURI.swf',
+						multiple : true,
+						// Display the images in the page
+						onSelect: function(files) {
+							var
+								li = $('<li>'),
+								img = $('<img>'),
+								textarea = $('<textarea>'),
+								file,
+								i =0,
+								filesL = files.length,
+								results = $('#results')
+							;
+							for (; i < filesL; i++) {
+								file = li.clone().append(img.clone().attr('src', files[i].data));
+								file = file.append(textarea.clone().text(files[i].data));
+								file.prependTo(results);
+							}
 						}
-					}
+					});
 				});
+
 			</script>
 		</div>
 	</div>

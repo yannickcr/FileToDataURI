@@ -1,6 +1,6 @@
 /*
 * Copyright (C) 2012 Yannick Croissant
-* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php 
+* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 * FileToDataURI.as : FileToDataURI is a jQuery plugin that allow you to retrieve the content (base64 encoded) of a local file using the HTML5 File API or using a Flash application if the File API is not available.
 * Authors :
 * - Yannick Croissant, https://github.com/Country
@@ -50,6 +50,12 @@
 				id = Math.round(Math.random()*1e9),
 				context = typeof FileReader == 'function' ? 'native' : 'flash' // Detect if FileReader is supported or not
 			;
+
+			if ( this.data('FileToDataURI').options.forceFlash ) {
+				context = 'flash';
+			}
+
+
 			this.data('FileToDataURI.id', id);
 			this.attr('data-filetodatauri-id', id);
 			this.data('FileToDataURI.context', context);
@@ -70,7 +76,7 @@
 				$('<input>')
 					.attr({
 						type:'file',
-						accept: this.data('FileToDataURI').options.allowedType + '/*',
+						accept: this.data('FileToDataURI').options.allowedExts.map(prefixDot).join(','),
 						multiple: this.data('FileToDataURI').options.multiple,
 						style: 'position:absolute;left:-9999px'
 					})
@@ -92,6 +98,10 @@
 			this.on('click', function(){
 				this.data('FileToDataURI.input').trigger('click');
 			}.bind(this));
+
+			function prefixDot( arrayItem ) {
+				return '.' + arrayItem;
+			}
 		},
 
 		/*
@@ -160,7 +170,7 @@
 			// Construct the flash object
 			var
 				html,
-				flashvars = 'id=' + this.data('FileToDataURI.id') + '&allowedType=' + this.data('FileToDataURI').options.allowedType + '&allowedExts=' + this.data('FileToDataURI').options.allowedExts.join(',') + '&fileDescription=' + this.data('FileToDataURI').options.fileDescription + '&multiple=' + this.data('FileToDataURI').options.multiple
+				flashvars = 'id=' + this.data('FileToDataURI.id') + '&allowedExts=' + this.data('FileToDataURI').options.allowedExts.join(',') + '&fileDescription=' + this.data('FileToDataURI').options.fileDescription + '&multiple=' + this.data('FileToDataURI').options.multiple
 			;
 			// Internet Explorer
 			if ($.browser.msie) {
@@ -189,7 +199,7 @@
 					coords = el.offset(),
 					zIndex = 2147483647 // Max z-index allowed by most browsers
 				;
-				
+
 				el.data('FileToDataURI.flash').css({
 					top: coords.top + 'px',
 					left: coords.left + 'px',
@@ -238,7 +248,6 @@
 	};
 
 	$.fn.FileToDataURI.defaults = {
-		allowedType: 'image',
 		allowedExts: ['jpg', 'jpeg', 'gif', 'png'],
 		fileDescription: 'Images',
 		moviePath: 'FileToDataURI.swf',

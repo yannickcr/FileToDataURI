@@ -14,29 +14,47 @@ package {
 	import flash.display.StageScaleMode;
 	import flash.net.FileReference;
 	import flash.net.FileFilter;
+	import flash.net.FileReferenceList;
 	import flash.utils.ByteArray;
 	import flash.external.ExternalInterface;
 
+
+
 	public class FileToDataURI extends Sprite {
+		
+		
 
 		// Flash vars
 		private var flashvars:Object = stage.loaderInfo.parameters;
 		private var id:int = flashvars['id'] || 0;
-		private var allowedType:String = flashvars['allowedType'] || 'image';
 		private var allowedExts:Array = flashvars['allowedExts'] ? flashvars['allowedExts'].split(',') : new Array('jpg', 'jpeg', 'gif', 'png');
 		private var fileDescription:String = flashvars['fileDescription'] || 'Images';
-		private var multiple:Boolean = flashvars['multiple'] || false; // Unused
+		private var multiple:Boolean = false; // Default to multiple
 
 		private var ext:String;
 		private var button:Sprite;
 		private var javascriptReceiver:String = 'jQuery.fn.FileToDataURI.javascriptReceiver';
+		private var logToJS:String = 'jQuery.fn.FileToDataURI.log';
 		private var fileRef:FileReference = new FileReference();
+		private var fileReferenceList:FileReferenceList = new FileReferenceList();
 		private var TypesList:FileFilter = new FileFilter(fileDescription + '(*.' + allowedExts.join(', *.') + ')', '*.' + allowedExts.join('; *.'));
 		private var Types:Array = new Array(TypesList);
 		private	var extPattern:RegExp = /(.*)\.([a-z0-9]*)$/gi;
 		private static const _encodeChars:Vector.<int> = InitEncoreChar();
 		
+		private var numberOfSelectedFiles:Number;
+		private var fileArrayToReturnToClient:Array;
+		
+		private var mimeTypeHelper:MimeTypeMap = new MimeTypeMap();
+		
+
 		public function FileToDataURI() {
+			// Bring in the flashVars
+			if ( flashvars['multiple'] ) {
+				multiple = isTrue( flashvars['multiple']);
+			}
+		
+			
 			stage.scaleMode = StageScaleMode.EXACT_FIT;
 			
 			button = new Sprite();
@@ -48,27 +66,100 @@ package {
 			addChild(button);
 
 			button.addEventListener(MouseEvent.CLICK, browseFiles);
+			
 			fileRef.addEventListener(Event.SELECT, onFileSelected);
-			fileRef.addEventListener(Event.COMPLETE, onComplete);
+			fileRef.addEventListener(Event.COMPLETE, onCompletedSingleFile);
+			
+			fileReferenceList.addEventListener(Event.SELECT, onFileListSelected);
+		}
+		
+		// Helper method to convert flashvars into bools
+		private function isTrue(val:String):Boolean {
+			if ( val.toLowerCase() === 'true' ) {
+				return true;
+			}
+			return false;
 		}
 
-		private function sendFileData(base64:String):void {
-			ext = fileRef.name.replace(extPattern, '$2').toLowerCase();
-
-			if (allowedExts.indexOf(ext) !== -1) ExternalInterface.call(javascriptReceiver, id, 'data:' + allowedType + '/' + ext + ';base64,' + base64);
+		private function sendFileListData(fileListData:Array):void {
+			if ( ExternalInterface.available ) {
+				ExternalInterface.call(javascriptReceiver, id, fileListData);
+			}
 			return;
 		}
 		
+		// Helper method to output to the console should you need it during development
+		private function log(message:String):void {
+			if ( ExternalInterface.available ) {
+				ExternalInterface.call(logToJS, message);
+			}
+		}
+		
 		private function browseFiles(evt:MouseEvent):void {
-			fileRef.browse(Types);
+			if ( multiple ) {
+				fileReferenceList.browse(Types);
+			} else {
+				fileRef.browse(Types);
+			}
 		}
 		
 		private function onFileSelected(event:Event):void {
 			fileRef.load();
 		}
+		
+		private function onFileListSelected(event:Event):void {
+			var file:FileReference;
+			var length:Number = fileReferenceList.fileList.length;
+			
+			numberOfSelectedFiles = length;
+			fileArrayToReturnToClient = new Array();
+			
+			for(var i:Number = 0; i < length; i++) {
+				file = fileReferenceList.fileList.pop();
+				file.addEventListener(Event.COMPLETE, onCompletedListFile);
+				file.load();
+			}
+		}
+		
+		private function onCompletedListFile( event : Event) : void {
+			var obj:Object = new Object();
+			var ext:String = event.currentTarget.name.replace(extPattern, '$2').toLowerCase();
 
-		public function onComplete(evt:Event):void {
-			sendFileData(encode(fileRef.data));
+			if (allowedExts.indexOf(ext) !== -1 || allowedExts.indexOf('*') !== -1 ) {
+				// Create an image object and add it to the array
+				obj.name = event.currentTarget.name;
+				obj.data = encodeBase64(event.currentTarget.data, ext);
+				fileArrayToReturnToClient.push(obj)
+			} else {
+				// File not allowed - so drop the selectedFile count
+				numberOfSelectedFiles = numberOfSelectedFiles - 1;
+			}
+					
+			if ( fileArrayToReturnToClient.length === numberOfSelectedFiles ) {
+				// Return the array back
+				sendFileListData( fileArrayToReturnToClient );
+			}
+		}
+
+		public function onCompletedSingleFile(evt:Event):void {
+			var ext:String = fileRef.name.replace(extPattern, '$2').toLowerCase();
+
+			if (allowedExts.indexOf(ext) !== -1 || allowedExts.indexOf('*') !== -1 ) {
+				// return the array back
+				sendFileListData(
+					[{ 
+						data : encodeBase64(fileRef.data, ext),
+						name : fileRef.name 
+					}]
+				);
+			}
+		}
+		
+		
+		private function encodeBase64(data:ByteArray, ext:String):String {
+			var mimeType:String = mimeTypeHelper.getMimeType(ext);
+			
+			return 'data:' + mimeType + ';base64,' + encode(data);
 		}
 
 		/* 

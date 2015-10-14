@@ -4,72 +4,47 @@
 	<meta charset="utf-8" />
 	<title>FileToDataURI example</title>
 	<link rel="stylesheet" href="demo.css" media="screen" />
-	<style>
-		/* Use .button as a container for the real button and the invisible flash object */
-		.button {
-			display: inline-block;
-			position: relative;
-		}
-
-		/* Hide the file input */
-		#file-input {
-			position: absolute;
-			left: -9999em;
-		}
-
-		/* Style the flash object to cover the real button (the background prevents the cursor to go 'throught' the transparent object) */
-		#file-object {
-			background: rgba(0,0,0,0);
-			position: absolute;
-			left: 0;
-			top: 0;
-			width: 100%;
-			height: 100%;
-		}
-
-		#results {
-			list-style: none;
-		}
-		
-		#results textarea {
-			height: 300px;
-			width: 800px;
-			vertical-align: top;
-			word-wrap: break-word;
-		}
-	</style>
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
 	<script src="../src/FileToDataURI.js"></script>
 </head>
 <body>
 	<h1>FileToDataURI example</h1>
 	<div id="container">
-<!-- Example 1 -->
 		<div class="block">
 			<button id="file-button">Select an image</button>
 			<ul id="results"></ul>
 			<script>
+
 				// Initialize FileToDataURI
-				$('#file-button').FileToDataURI({
-					moviePath: '../dist/FileToDataURI.swf',
-					// Display the images in the page
-					onSelect: function(files) {
-						var
-							li = $('<li>'),
-							img = $('<img>'),
-							textarea = $('<textarea>'),
-							file,
-							i =0,
-							filesL = files.length,
-							results = $('#results')
-						;
-						for (; i < filesL; i++) {
-							file = li.clone().append(img.clone().attr('src', files[i]));
-							file = file.append(textarea.clone().text(files[i]));
-							file.prependTo(results);
+				$(document).ready(function() {
+					$('#file-button').FileToDataURI({
+						moviePath: '../dist/FileToDataURI.swf',
+						// Choose to allow multiple files or now
+						multiple : true,
+						// Put th extensions allowed for the file picker
+						allowedExts: ['js','png','jpg','jpeg'],
+						// force flash - boolean to force flash
+						forceFlash : false,
+						// Display the images in the page (callback function)
+						onSelect: function(files) {
+							var
+								li = $('<li>'),
+								img = $('<img>'),
+								textarea = $('<textarea>'),
+								file,
+								i =0,
+								filesL = files.length,
+								results = $('#results')
+							;
+							for (; i < filesL; i++) {
+								file = li.clone().append(img.clone().attr('src', files[i].data));
+								file = file.append(textarea.clone().text(files[i].data));
+								file.prependTo(results);
+							}
 						}
-					}
+					});
 				});
+
 			</script>
 		</div>
 	</div>

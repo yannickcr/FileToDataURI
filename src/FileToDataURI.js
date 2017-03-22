@@ -48,7 +48,7 @@
 		_init: function() {
 			var
 				id = Math.round(Math.random()*1e9),
-				context = typeof FileReader == 'function' ? 'native' : 'flash' // Detect if FileReader is supported or not
+				context = typeof FileReader == 'undefined' ? 'flash' : 'native' // Detect if FileReader is supported or not
 			;
 
 			if ( this.data('FileToDataURI').options.forceFlash ) {
